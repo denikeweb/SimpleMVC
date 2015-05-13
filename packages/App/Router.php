@@ -6,22 +6,31 @@
 
 		private $do = NULL;
 		private $action = NULL;
-		public static $get = NULL;
-		public static $post = NULL;
-		
-		private $ctrls = [
-			'index' => 'Index',
-			'404' => 'C404'
-		];
+		private $method = NULL;
+		private $get = NULL;
+		private $post = NULL;
+
+		public function  getDo ( ) {
+			return $this->do;
+		}
+
+		public function  getAction ( ) {
+			return $this->action;
+		}
+
+		public function  getMethod ( ) {
+			return $this->method;
+		}
 
 		/**
 		 * function for routing ajax queries
 		 *
 		 * @param $request
 		 */
-		private function ajaxRoute(&$ctrlName) {
-			$request = $this->action;
-			$className = 'Ajax\\' . $this->action;
+
+		private function ajaxRoute(&$ctrlName, &$method) {
+			$ctrlName = 'Ajax\\' . $this->action;
+			$method = $_REQUEST ['method'];
 		}
 
 		/**
@@ -29,25 +38,35 @@
 		 */
 		public function runApp () {
 			// route ajax queries
-			if (isset ($_GET ['do']))
-				$this->do = $_GET ['do'];
-			if (isset ($_GET ['action']))
-				$this->action = $_GET ['action'];
+			if (isset ($_REQUEST ['do']))
+				$this->do = $_REQUEST ['do'];
+			if (isset ($_REQUEST ['action']))
+				$this->action = $_REQUEST ['action'];
+			$method = 'run';
 
-			$ctrlName = $this->ctrls [$this->do];
+			$ctrlName = Config::get_ctrls() [$this->do];
 			if (is_null($ctrlName) or !isset ($ctrlName))
-				$ctrlName = $this->ctrls ['index'];
-				
+				$ctrlName = Config::get_ctrls() ['index'];
+
 			if (!is_null($this->do) and $this->do == 'ajax')
-				$this->ajaxCtrls ($ctrlName);
-			
-			self::$get = $_GET;
-			self::$post = $_POST;
-			unset (self::$get ['do']);
-			unset (self::$get ['ajax']);
-			
+				$this->ajaxRoute ($ctrlName, $method);
+
+			$this->get = $_GET;
+			$this->post = $_POST;
+			$this->do     = $this->get ['do'];
+			$this->action = $this->get ['action'];
+			$this->method = $this->get ['method'];
+			unset ($this->get ['do']);
+			unset ($this->get ['action']);
+			unset ($this->get ['method']);
+
 			$className = '\\Controllers\\' . $ctrlName;
 			$ctrl = new $className ();
-			$ctrl->run ();
+			if ($ctrl instanceof Controller) {
+				if (isset ($_REQUEST ['jsonData']))
+					$ctrl->setData ($_REQUEST ['jsonData']);
+				$ctrl->setCore ($this);
+			}
+			$ctrl->$method ();
 		}
 	}

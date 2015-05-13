@@ -13,10 +13,10 @@
 		{
 			//connect to db
 			self::$db = new \mysqli(
-				config::get_db_server (),
-				config::get_db_username (),
-				config::get_db_userpass (),
-				config::get_db_name()
+				Config::get_db_server (),
+				Config::get_db_username (),
+				Config::get_db_userpass (),
+				Config::get_db_name()
 			);
 
 			// check connect
@@ -32,7 +32,7 @@
 		}
 
 		public static function app () {
-			self::$router = new router ();
+			self::$router = new Router ();
 			self::$router->runApp ();
 		}
 

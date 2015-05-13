@@ -3,6 +3,7 @@
 	
 	</head>
 	<body>
+		App:
 		<?= $content; ?>
 	</body>
 </html>
